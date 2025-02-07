@@ -1,0 +1,35 @@
+[
+  {
+    "id": 1,
+    "title": "Burrito",
+    "description": "Wrap de carne y vegetales",
+    "price": 19990,
+    "thumbnails": "/burrito.jpg",
+    "code": 12345,
+    "stock": 10,
+    "category": "Burrito",
+    "status": true
+  },
+  {
+    "id": 2,
+    "title": "Quesadilla de carne",
+    "description": "Wrap de carne y queso doblado",
+    "price": 14990,
+    "thumbnails": "/quesadilla.jpg",
+    "code": 12346,
+    "stock": 15,
+    "category": "Quesadilla",
+    "status": true
+  },
+  {
+    "id": 3,
+    "title": "Nachos de queso",
+    "description": "Tortillas fritas con queso",
+    "price": 9990,
+    "thumbnails": "/nachos-queso.jpg",
+    "code": 12348,
+    "stock": 8,
+    "category": "Nachos",
+    "status": true
+  }
+]
