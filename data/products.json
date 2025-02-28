@@ -23,13 +23,35 @@
   },
   {
     "id": 3,
-    "title": "Nachos de queso",
+    "title": "Nachos de quesoo",
     "description": "Tortillas fritas con queso",
     "price": 9990,
     "thumbnails": "/nachos-queso.jpg",
     "code": 12348,
     "stock": 8,
     "category": "Nachos",
+    "status": true
+  },
+  {
+    "id": 4,
+    "title": "Nachos de carne",
+    "description": "Ricos nachos de carnitas con queso",
+    "price": "9990",
+    "thumbnails": "/nacho_carne.jpg",
+    "code": "1234583",
+    "stock": "10",
+    "category": "Nachos",
+    "status": true
+  },
+  {
+    "id": 5,
+    "title": "Burrito de carne",
+    "description": "wrap de carne y queso",
+    "price": "14990",
+    "thumbnails": "/burrito_carne.jpg",
+    "code": "12345",
+    "stock": "14",
+    "category": "Burrito",
     "status": true
   }
 ]

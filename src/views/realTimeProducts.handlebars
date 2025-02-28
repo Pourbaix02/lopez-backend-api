@@ -1,0 +1,64 @@
+<h1>Productos en Tiempo Real</h1>
+<ul id="productList">
+  {{#if products.length}}
+    {{#each products}}
+      <li data-id="{{this.id}}">
+        <strong>{{this.title}}</strong> - ${{this.price}}<br>
+        <em>{{this.description}}</em><br>
+        Código: {{this.code}} | Stock: {{this.stock}} | Categoría: {{this.category}}
+      </li>
+    {{/each}}
+  {{else}}
+    <li>No hay productos disponibles.</li>
+  {{/if}}
+</ul>
+
+<!-- Formulario para agregar un producto vía WebSocket -->
+<form id="productForm">
+  <input type="text" name="title" placeholder="Título" required>
+  <input type="text" name="description" placeholder="Descripción" required>
+  <input type="number" name="price" placeholder="Precio" required>
+  <input type="text" name="thumbnails" placeholder="Ruta de imagen" required>
+  <input type="number" name="code" placeholder="Código" required>
+  <input type="number" name="stock" placeholder="Stock" required>
+  <input type="text" name="category" placeholder="Categoría" required>
+  <!-- status se puede dejar como true por defecto -->
+  <button type="submit">Agregar Producto</button>
+</form>
+
+<!-- Cliente de Socket.io -->
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  const socket = io();
+
+  // Manejar el envío del formulario para agregar un producto
+  document.getElementById('productForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const product = {};
+    formData.forEach((value, key) => {
+      product[key] = value;
+    });
+    // Emitir el evento 'newProduct' con los datos del producto
+    socket.emit('newProduct', product);
+    e.target.reset();
+  });
+
+  // Escuchar la actualización de la lista de productos y refrescar la vista
+  socket.on('updateProducts', (products) => {
+    const productList = document.getElementById('productList');
+    productList.innerHTML = '';
+    if (products.length) {
+      products.forEach(prod => {
+        const li = document.createElement('li');
+        li.setAttribute('data-id', prod.id);
+        li.innerHTML = `<strong>${prod.title}</strong> - $${prod.price}<br>
+                        <em>${prod.description}</em><br>
+                        Código: ${prod.code} | Stock: ${prod.stock} | Categoría: ${prod.category}`;
+        productList.appendChild(li);
+      });
+    } else {
+      productList.innerHTML = '<li>No hay productos disponibles.</li>';
+    }
+  });
+</script>
