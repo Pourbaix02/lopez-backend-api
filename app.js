@@ -1,16 +1,13 @@
-const express = require('express');
-const productRoutes = require('./routes/products.routes');
-const cartRoutes = require('./routes/carts.routes');
+const { createServer } = require('http');
+const app = require('./src/server');
+const setupWebSocket = require('./src/services/websocket');
 
-const app = express();
-app.use(express.json());
+const httpServer = createServer(app);
+const io = setupWebSocket(httpServer);
 
-
-
-app.use('/api/products', productRoutes);
-app.use('/api/cart', cartRoutes);
+app.set('socketio', io);
 
 const PORT = 8080;
-app.listen(PORT, () => {
-    console.log(`Servidor corriendo en el puerto ${PORT}`);
+httpServer.listen(PORT, () => {
+  console.log(`Servidor corriendo en el puerto ${PORT}`);
 });

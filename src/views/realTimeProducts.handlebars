@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Página de Productos en Tiempo Real</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Página de Productos en Tiempo Real</h1>
+
+        <h2>Lista de Productos</h2>
+        <ul id="productList">
+            {{#if products.length}}
+                {{#each products}}
+                    <li>
+                        <div>
+                            <strong>{{this.title}}</strong> - ${{this.price}}<br>
+                            <em>{{this.description}}</em><br>
+                            Código: {{this.code}} | Stock: {{this.stock}} | Categoría: {{this.category}}
+                        </div>
+                        <button class="delete-btn" onclick="deleteProduct('{{this.id}}')">✖</button>
+                    </li>
+                {{/each}}
+            {{else}}
+                <li>No hay productos disponibles.</li>
+            {{/if}}
+        </ul>
+
+        <h2>Agregar Producto (WebSockets)</h2>
+        <form id="productForm">
+            <input type="text" name="title" placeholder="Título" required>
+            <input type="text" name="description" placeholder="Descripción" required>
+            <input type="number" name="price" placeholder="Precio" required>
+            <input type="text" name="thumbnails" placeholder="Ruta de imagen" required>
+            <input type="number" name="code" placeholder="Código" required>
+            <input type="number" name="stock" placeholder="Stock" required>
+            <input type="text" name="category" placeholder="Categoría" required>
+
+            <button type="submit">Agregar Producto</button>
+        </form>
+
+        <a href="/home">Volver a la vista tradicional</a>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+
+        document.getElementById('productForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const product = {};
+            formData.forEach((value, key) => {
+                product[key] = value;
+            });
+
+            socket.emit('newProduct', product);
+            e.target.reset();
+        });
+
+        function deleteProduct(productId) {
+            socket.emit('deleteProduct', productId);
+        }
+
+        socket.on('updateProducts', (products) => {
+            const productList = document.getElementById('productList');
+            productList.innerHTML = '';
+
+            if (products.length) {
+                products.forEach(prod => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `
+                        <div>
+                            <strong>${prod.title}</strong> - $${prod.price}<br>
+                            <em>${prod.description}</em><br>
+                            Código: ${prod.code} | Stock: ${prod.stock} | Categoría: ${prod.category}
+                        </div>
+                        <button class="delete-btn" onclick="deleteProduct('${prod.id}')">✖</button>
+                    `;
+                    productList.appendChild(li);
+                });
+            } else {
+                productList.innerHTML = '<li>No hay productos disponibles.</li>';
+            }
+        });
+    </script>
+</body>
+</html>
