@@ -50,6 +50,7 @@ exports.deleteProduct = (req, res) => {
     const result = productManager.deleteProduct(productId);
     if (result.error) return res.status(404).json(result);
     res.json(result);
+  
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
