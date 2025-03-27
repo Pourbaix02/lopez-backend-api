@@ -1,117 +1,52 @@
-const fs = require('fs');
+const Product = require('../models/product.model');
 
 class ProductManager {
-  constructor(path) {
-    this.path = path;
-    this.products = this.loadProducts();
-  }
-
-  loadProducts() {
+  async addProduct(productData) {
     try {
-      const data = fs.readFileSync(this.path, 'utf-8');
-      return JSON.parse(data);
-    } catch (error) {
-      console.error("Error al cargar los productos:", error);
-      return [];
-    }
-  }
-
-  saveProducts() {
-    try {
-      fs.writeFileSync(this.path, JSON.stringify(this.products, null, 2));
-    } catch (error) {
-      console.error("Error al guardar los productos:", error);
-    }
-  }
-
-  addProduct(product) {
-    try {
-      const { title, description, price, thumbnails, code, stock, category, status = true } = product;
-
-      if (!title || !description || !price || !thumbnails || !code || !stock || !category) {
-        console.error("Todos los campos son obligatorios");
-        return;
-      }
-
-      if (this.products.some(prod => prod.code === code)) {
-        console.error(`El código ${code} ya está en uso.`);
-        return;
-      }
-
-      const newProduct = {
-        id: this.products.length > 0 ? this.products[this.products.length - 1].id + 1 : 1,
-        title,
-        description,
-        price,
-        thumbnails,
-        code,
-        stock,
-        category,
-        status
-      };
-
-      this.products.push(newProduct);
-      this.saveProducts();
-      console.log("Producto agregado exitosamente");
-    } catch (error) {
-      console.error("Error al agregar producto:", error);
-    }
-  }
-
-  getProducts() {
-    try {
-      return this.products;
-    } catch (error) {
-      console.error("Error al obtener los productos:", error);
-      return [];
-    }
-  }
-
-  getProductById(id) {
-    try {
-      const product = this.products.find(product => product.id === id);
-      if (!product) {
-        console.error("Producto no encontrado");
-        return { error: "Not found" };
-      }
+      const product = new Product(productData);
+      await product.save();
       return product;
     } catch (error) {
-      console.error("Error al obtener el producto por ID:", error);
-      return { error: "Error al obtener producto" };
+      throw error;
     }
   }
 
-  updateProduct(id, updatedFields) {
+  async getProducts(limit = 10, page = 1, sort = null, query = {}) {
     try {
-      const index = this.products.findIndex(product => product.id === id);
-      if (index === -1) {
-        console.error("Producto no encontrado");
-        return { error: "Not found" };
-      }
-
-      this.products[index] = { ...this.products[index], ...updatedFields, id };
-      this.saveProducts();
-      return this.products[index];
+      const options = {
+        page: page,
+        limit: limit,
+        sort: sort ? { price: sort === 'asc' ? 1 : -1 } : undefined,
+        lean: true
+      };
+      
+      return await Product.paginate(query, options);
     } catch (error) {
-      console.error("Error al actualizar el producto:", error);
-      return { error: "Error al actualizar producto" };
+      throw error;
     }
   }
 
-  deleteProduct(id) {
+  async getProductById(id) {
     try {
-      const index = this.products.findIndex(product => product.id === id);
-      if (index === -1) {
-        console.error("Producto no encontrado");
-        return { error: "Not found" };
-      }
-
-      this.products.splice(index, 1);
-      this.saveProducts();
-      return { message: "Producto eliminado" };
+      return await Product.findById(id);
     } catch (error) {
-      console.error("Error al eliminar el producto:", error);
-      return { error: "Error al eliminar producto" };
+      throw error;
+    }
+  }
+
+  async updateProduct(id, updateData) {
+    try {
+      return await Product.findByIdAndUpdate(id, updateData, { new: true });
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async deleteProduct(id) {
+    try {
+      return await Product.findByIdAndDelete(id);
+    } catch (error) {
+      throw error;
     }
   }
 }

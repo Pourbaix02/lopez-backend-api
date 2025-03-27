@@ -7,7 +7,7 @@ const io = setupWebSocket(httpServer);
 
 app.set('socketio', io);
 
-const PORT = 8080;
+const PORT = process.env.PORT || 8080;
 httpServer.listen(PORT, () => {
-  console.log(`Servidor corriendo en el puerto ${PORT}`);
+  console.log(`Servidor corriendo en puerto ${PORT}`);
 });
