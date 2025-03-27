@@ -1,35 +1,64 @@
-const { Server } = require('socket.io');
+const socketIO = require('socket.io');
 const ProductManager = require('../managers/ProductManager');
 const path = require('path');
 
 const productsFilePath = path.join(__dirname, '../../data/products.json');
 const productManager = new ProductManager(productsFilePath);
 
-function setupWebSocket(httpServer) {
-    const io = new Server(httpServer);
+const setupWebSocket = (server) => {
+    const io = socketIO(server);
 
     io.on('connection', (socket) => {
-        console.log('Nuevo cliente conectado');
+        console.log('Cliente conectado');
 
-        socket.emit('updateProducts', productManager.getProducts());
-
-        socket.on('newProduct', (productData) => {
-            productManager.addProduct(productData);
-            io.emit('updateProducts', productManager.getProducts());
+        socket.on('newProduct', async (product) => {
+            try {
+                const result = await productManager.getProducts();
+              
+                const products = result.docs.map(doc => {
+                    return {
+                        _id: doc._id.toString(),
+                        title: doc.title,
+                        description: doc.description,
+                        price: doc.price,
+                        thumbnail: doc.thumbnail,
+                        code: doc.code,
+                        stock: doc.stock,
+                        category: doc.category,
+                        status: doc.status
+                    };
+                });
+                io.emit('updateProducts', products);
+            } catch (error) {
+                console.error('Error al actualizar productos:', error);
+            }
         });
 
-        socket.on('deleteProduct', (productId) => {
-            const deleted = productManager.deleteProduct(parseInt(productId));
+        socket.on('deleteProduct', async (productId) => {
+            try {
+                const result = await productManager.getProducts();
 
-            if (deleted.error) {
-                socket.emit('errorMessage', deleted.error);
-            } else {
-                io.emit('updateProducts', productManager.getProducts());
+                const products = result.docs.map(doc => {
+                    return {
+                        _id: doc._id.toString(),
+                        title: doc.title,
+                        description: doc.description,
+                        price: doc.price,
+                        thumbnail: doc.thumbnail,
+                        code: doc.code,
+                        stock: doc.stock,
+                        category: doc.category,
+                        status: doc.status
+                    };
+                });
+                io.emit('updateProducts', products);
+            } catch (error) {
+                console.error('Error al actualizar productos:', error);
             }
         });
     });
 
     return io;
-}
+};
 
 module.exports = setupWebSocket;
