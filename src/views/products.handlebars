@@ -4,13 +4,15 @@
     <div class="filters">
         <select id="categoryFilter" onchange="applyFilters()">
             <option value="">Todas las categorías</option>
-            <option value="available">Disponibles</option>
+            {{#each categories}}
+                <option value="{{this}}" {{#if (eq ../query this)}}selected{{/if}}>{{this}}</option>
+            {{/each}}
         </select>
         
         <select id="sortOrder" onchange="applyFilters()">
             <option value="">Sin ordenar</option>
-            <option value="asc">Precio: Menor a Mayor</option>
-            <option value="desc">Precio: Mayor a Menor</option>
+            <option value="asc" {{#if (eq sort "asc")}}selected{{/if}}>Precio: Menor a Mayor</option>
+            <option value="desc" {{#if (eq sort "desc")}}selected{{/if}}>Precio: Mayor a Menor</option>
         </select>
     </div>
 
@@ -129,19 +131,37 @@ async function addToCart(productId) {
     try {
         let cartId = localStorage.getItem('cartId');
         
-        if (!cartId) {
-            const response = await fetch('/api/carts', {
-                method: 'POST'
-            });
-            const result = await response.json();
-            if (!result.payload._id) {
-                throw new Error('Error al crear el carrito');
+        if (cartId) {
+            // Verificar si el carrito existe en la base de datos
+            const checkCartResponse = await fetch(`/api/carts/${cartId}`);
+            if (!checkCartResponse.ok) {
+                console.log('Carrito no encontrado, creando uno nuevo...');
+                localStorage.removeItem('cartId'); // Eliminar el cartId inválido
+                cartId = null;
             }
-            cartId = result.payload._id;
-            localStorage.setItem('cartId', cartId);
         }
 
-        const response = await fetch(`/api/carts/${cartId}/product/${productId}`, {
+        // Si no hay cartId o el carrito no existe, crear uno nuevo
+        if (!cartId) {
+            const createCartResponse = await fetch('/api/carts', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (!createCartResponse.ok) {
+                throw new Error('Error al crear el carrito');
+            }
+            
+            const cartResult = await createCartResponse.json();
+            cartId = cartResult.payload._id;
+            localStorage.setItem('cartId', cartId);
+            console.log('Nuevo carrito creado:', cartId);
+        }
+
+        // Agregar producto al carrito
+        const response = await fetch(`/api/carts/${cartId}/products/${productId}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -150,19 +170,35 @@ async function addToCart(productId) {
         });
 
         if (!response.ok) {
-            throw new Error(`Error ${response.status}: ${response.statusText}`);
+            const errorData = await response.json();
+            throw new Error(errorData.error || `Error ${response.status}: ${response.statusText}`);
         }
 
         const result = await response.json();
         
         if (result.status === 'success') {
-            alert('Producto agregado al carrito exitosamente');
+            Swal.fire({
+                icon: 'success',
+                title: '¡Éxito!',
+                text: 'Producto agregado al carrito',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000
+            });
         } else {
             throw new Error(result.error || 'Error al agregar al carrito');
         }
     } catch (error) {
         console.error('Error completo:', error);
-        alert('Error al agregar al carrito: ' + error.message);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: `Error al agregar al carrito: ${error.message}`
+        });
     }
 }
-</script> 
+</script>
+
+<!-- Asegúrate de incluir SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> 

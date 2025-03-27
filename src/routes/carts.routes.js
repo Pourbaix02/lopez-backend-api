@@ -1,15 +1,15 @@
-const { Router } = require('express');
-const CartController = require('../controllers/cart.controller');
-const router = Router();
+const express = require('express');
+const router = express.Router();
+const cartController = require('../controllers/cart.controller');
 
-// Rutas de carritos
-router.get('/:cid', CartController.getCart);
-router.post('/', CartController.createCart);
-router.post('/:cid/product/:pid', CartController.addProductToCart);
-router.delete('/:cid/products/:pid', CartController.removeProductFromCart);
-router.put('/:cid', CartController.updateCart);
-router.put('/:cid/products/:pid', CartController.updateProductQuantity);
-router.delete('/:cid', CartController.clearCart);
+
+router.get('/:cid', cartController.getCart.bind(cartController));
+router.post('/', cartController.createCart.bind(cartController));
+router.post('/:cid/products/:pid', cartController.addProductToCart.bind(cartController));
+router.delete('/:cid/products/:pid', cartController.removeProductFromCart.bind(cartController));
+router.put('/:cid', cartController.updateCart.bind(cartController));
+router.put('/:cid/products/:pid', cartController.updateProductQuantity.bind(cartController));
+router.delete('/:cid', cartController.clearCart.bind(cartController));
 
 module.exports = router;
 

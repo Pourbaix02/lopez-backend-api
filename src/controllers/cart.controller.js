@@ -1,22 +1,7 @@
-const path = require('path');
-const CartManager = require('../managers/CartManager');
 const Cart = require('../models/cart.model');
 const Product = require('../models/product.model');
 
-const cartsFilePath = path.join(__dirname, '../../data/carts.json');
-const productsFilePath = path.join(__dirname, '../../data/products.json');
-const cartManager = new CartManager(cartsFilePath, productsFilePath);
-
 class CartController {
-  async createCart(req, res) {
-    try {
-      const newCart = await Cart.create({ products: [] });
-      res.status(201).json({ status: 'success', payload: newCart });
-    } catch (error) {
-      res.status(500).json({ status: 'error', error: error.message });
-    }
-  }
-
   async getCart(req, res) {
     try {
       const { cid } = req.params;
@@ -32,6 +17,15 @@ class CartController {
     }
   }
 
+  async createCart(req, res) {
+    try {
+      const newCart = await Cart.create({ products: [] });
+      res.status(201).json({ status: 'success', payload: newCart });
+    } catch (error) {
+      res.status(500).json({ status: 'error', error: error.message });
+    }
+  }
+
   async addProductToCart(req, res) {
     try {
       const { cid, pid } = req.params;
@@ -39,44 +33,28 @@ class CartController {
 
       const cart = await Cart.findById(cid);
       if (!cart) {
-        return res.status(404).json({
-          status: 'error',
-          error: 'Carrito no encontrado'
-        });
+        return res.status(404).json({ status: 'error', error: 'Carrito no encontrado' });
       }
 
       const product = await Product.findById(pid);
       if (!product) {
-        return res.status(404).json({
-          status: 'error',
-          error: 'Producto no encontrado'
-        });
+        return res.status(404).json({ status: 'error', error: 'Producto no encontrado' });
       }
 
-      const existingProductIndex = cart.products.findIndex(
+      const productIndex = cart.products.findIndex(
         item => item.product.toString() === pid
       );
 
-      if (existingProductIndex >= 0) {
-        cart.products[existingProductIndex].quantity += quantity;
+      if (productIndex >= 0) {
+        cart.products[productIndex].quantity += quantity;
       } else {
-        cart.products.push({
-          product: pid,
-          quantity: quantity
-        });
+        cart.products.push({ product: pid, quantity });
       }
 
       await cart.save();
-
-      return res.json({
-        status: 'success',
-        payload: cart
-      });
+      res.json({ status: 'success', payload: cart });
     } catch (error) {
-      return res.status(500).json({
-        status: 'error',
-        error: error.message
-      });
+      res.status(500).json({ status: 'error', error: error.message });
     }
   }
 

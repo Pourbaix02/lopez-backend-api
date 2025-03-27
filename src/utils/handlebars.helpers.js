@@ -12,6 +12,9 @@ const helpers = {
       const quantity = item.quantity || 0;
       return total + (price * quantity);
     }, 0);
+  },
+  eq: function (a, b) {
+    return a === b;
   }
 };
 

@@ -13,6 +13,78 @@
 </div>
 
 <script>
+async function addToCart(productId) {
+    try {
+        let cartId = localStorage.getItem('cartId');
+        
+        if (cartId) {
+            // Verificar si el carrito existe en la base de datos
+            const checkCartResponse = await fetch(`/api/carts/${cartId}`);
+            if (!checkCartResponse.ok) {
+                console.log('Carrito no encontrado, creando uno nuevo...');
+                localStorage.removeItem('cartId');
+                cartId = null;
+            }
+        }
+
+        // Si no hay cartId o el carrito no existe, crear uno nuevo
+        if (!cartId) {
+            const createCartResponse = await fetch('/api/carts', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (!createCartResponse.ok) {
+                throw new Error('Error al crear el carrito');
+            }
+            
+            const cartResult = await createCartResponse.json();
+            cartId = cartResult.payload._id;
+            localStorage.setItem('cartId', cartId);
+            console.log('Nuevo carrito creado:', cartId);
+        }
+
+        // Agregar producto al carrito
+        const response = await fetch(`/api/carts/${cartId}/products/${productId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ quantity: 1 })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || `Error ${response.status}: ${response.statusText}`);
+        }
+
+        const result = await response.json();
+        
+        if (result.status === 'success') {
+            Swal.fire({
+                icon: 'success',
+                title: '¡Éxito!',
+                text: 'Producto agregado al carrito',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000
+            });
+        } else {
+            throw new Error(result.error || 'Error al agregar al carrito');
+        }
+    } catch (error) {
+        console.error('Error completo:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: `Error al agregar al carrito: ${error.message}`
+        });
+    }
+}
+
 async function deleteProduct(productId) {
     if (!confirm('¿Estás seguro de que deseas eliminar este producto?')) {
         return;
@@ -36,43 +108,8 @@ async function deleteProduct(productId) {
         alert('Error al eliminar el producto');
     }
 }
-
-async function addToCart(productId) {
-    try {
-        let cartId = localStorage.getItem('cartId');
-        
-        if (!cartId) {
-            const createCartResponse = await fetch('/api/carts', {
-                method: 'POST'
-            });
-            const cartResult = await createCartResponse.json();
-            cartId = cartResult.payload._id;
-            localStorage.setItem('cartId', cartId);
-        }
-        
-        const response = await fetch(`/api/carts/${cartId}/products/${productId}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ quantity: 1 })
-        });
-        
-        const result = await response.json();
-        
-        if (result.status === 'success') {
-            alert('Producto agregado al carrito');
-        } else {
-            alert('Error al agregar al carrito');
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        alert('Error al agregar al carrito');
-    }
-}
 </script>
 
-<!-- Agregar SweetAlert2 para mejores alertas -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <style>

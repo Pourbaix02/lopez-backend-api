@@ -26,11 +26,11 @@ const populateProducts = async () => {
         await connectDB();
         console.log('Conexión a MongoDB establecida');
 
-        // Eliminar productos existentes
+        
         await Product.deleteMany({});
         console.log('Productos anteriores eliminados');
 
-        // Generar y guardar nuevos productos
+      
         const products = generateProducts(100);
         await Product.insertMany(products);
         

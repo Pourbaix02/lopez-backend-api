@@ -93,46 +93,45 @@ class ViewsController {
 
   async renderProducts(req, res) {
     try {
-      const { 
-        limit = 10, 
-        page = 1, 
-        sort, 
-        query 
-      } = req.query;
-
+      const { limit = 10, page = 1, sort, query } = req.query;
+      
       const options = {
         page: parseInt(page),
         limit: parseInt(limit),
-        sort: sort ? { price: sort === 'asc' ? 1 : -1 } : null,
         lean: true
       };
-
+      
+      if (sort) {
+        options.sort = { price: sort === 'asc' ? 1 : -1 };
+      }
+      
       const queryObject = {};
       if (query) {
-        if (query === 'available') {
-          queryObject.stock = { $gt: 0 };
-        } else {
-          queryObject.category = query;
-        }
+        queryObject.category = query;
       }
-
+      
       const result = await Product.paginate(queryObject, options);
 
+      const categories = await Product.distinct('category');
+      
       res.render('products', {
         products: result.docs,
         pagination: {
+          status: 'success',
+          payload: result.docs,
           totalPages: result.totalPages,
           prevPage: result.prevPage,
           nextPage: result.nextPage,
           page: result.page,
           hasPrevPage: result.hasPrevPage,
           hasNextPage: result.hasNextPage,
-          prevLink: result.hasPrevPage ? `/products?page=${result.prevPage}&limit=${limit}${sort ? `&sort=${sort}` : ''}${query ? `&query=${query}` : ''}` : null,
-          nextLink: result.hasNextPage ? `/products?page=${result.nextPage}&limit=${limit}${sort ? `&sort=${sort}` : ''}${query ? `&query=${query}` : ''}` : null
-        }
+          prevLink: result.hasPrevPage ? `/products?page=${result.prevPage}${sort ? `&sort=${sort}` : ''}${query ? `&query=${query}` : ''}` : null,
+          nextLink: result.hasNextPage ? `/products?page=${result.nextPage}${sort ? `&sort=${sort}` : ''}${query ? `&query=${query}` : ''}` : null
+        },
+        categories: categories // Pasamos las categorías a la vista
       });
     } catch (error) {
-      res.render('error', { error: error.message });
+      res.status(500).render('error', { error: error.message });
     }
   }
 
@@ -164,7 +163,6 @@ class ViewsController {
         });
       }
 
-      // Filtrar productos nulos o inválidos
       cart.products = cart.products.filter(item => 
         item && item.product && item.quantity
       );

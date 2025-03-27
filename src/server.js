@@ -6,7 +6,6 @@ const handlebarsHelpers = require('./utils/handlebars.helpers');
 
 const app = express();
 
-// Conectar a MongoDB
 connectDB();
 
 app.use(express.json());
@@ -23,7 +22,7 @@ app.engine('handlebars', handlebars.engine({
 app.set('view engine', 'handlebars');
 app.set('views', path.join(__dirname, 'views'));
 
-// Rutas
+
 const productsRouter = require('./routes/products.routes');
 const cartsRouter = require('./routes/carts.routes');
 const viewsRouter = require('./routes/views.routes');

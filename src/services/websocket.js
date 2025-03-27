@@ -14,7 +14,7 @@ const setupWebSocket = (server) => {
         socket.on('newProduct', async (product) => {
             try {
                 const result = await productManager.getProducts();
-                // Asegurarse de que los documentos sean objetos planos
+              
                 const products = result.docs.map(doc => {
                     return {
                         _id: doc._id.toString(),
@@ -37,7 +37,7 @@ const setupWebSocket = (server) => {
         socket.on('deleteProduct', async (productId) => {
             try {
                 const result = await productManager.getProducts();
-                // Asegurarse de que los documentos sean objetos planos
+
                 const products = result.docs.map(doc => {
                     return {
                         _id: doc._id.toString(),
